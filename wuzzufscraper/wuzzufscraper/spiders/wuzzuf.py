@@ -2,10 +2,11 @@ import scrapy
 import re
 import time
 import logging
+from wuzzufscraper.items import WuzzufJobItem
 class WuzzufJobsSpider(scrapy.Spider):
     name = 'wuzzuf_jobs'
     allowed_domains = ['wuzzuf.net']
-    keywords = ['software', 'python', 'backend', 'frontend','Data scientist','Data engineer','Machine learning','Ai','Cloud','Devops','full stack']
+    keywords = ['software', 'python', 'backend', 'frontend','Data scientist','Data engineer','Machine learning','Ai','Cloud','Devops','full stack','Data Analyst','Web Application Developer','Mobile Application Developer']
     custom_settings = {
         'DOWNLOAD_DELAY': 5,
         'CONCURRENT_REQUESTS': 5,
@@ -19,7 +20,7 @@ class WuzzufJobsSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse, meta={'keyword': keyword, 'page': 0})
     def parse(self, response):
         keyword = response.meta['keyword']
-        page_number = response.meta['page'] + 1
+        page_number = response.meta['page']+1
         job_listings = response.css('div.css-1gatmva')
         self.logger.info(f"Scraping '{keyword}' - Page {page_number} - {response.url}")
         self.logger.info(f"Found {len(job_listings)} job listings.")
@@ -54,18 +55,18 @@ class WuzzufJobsSpider(scrapy.Spider):
                 tech = tech.strip()
                 if tech and tech not in ['.', '...', ',', '-']:
                     technologies.append(tech)
-            job_item = {
-                'search_keyword': keyword,
-                'page_number': page_number,
-                'job_title': job_title,
-                'company_name': company_name,
-                'location': location,
-                'posted_time': posted_time,
-                'years_of_experience': years_of_exp,
-                'technologies': technologies,
-            }
+            job_item = WuzzufJobItem(
+                search_keyword=keyword,
+                page_number=page_number,
+                job_title=job_title,
+                company_name=company_name,
+                location=location,
+                posted_time=posted_time,
+                years_of_experience=years_of_exp,
+                technologies=technologies,
+            )
             yield job_item
-        next_start = page_number+1
+        next_start = page_number
         next_url = f"https://wuzzuf.net/search/jobs/?q={keyword}&a=navbg&start={next_start}"
         self.logger.info(f"Scheduling next page for '{keyword}': {next_url}")
         time.sleep(10)

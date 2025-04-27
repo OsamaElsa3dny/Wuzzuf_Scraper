@@ -1,12 +1,11 @@
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/items.html
-
 import scrapy
 
-
-class WuzzufscraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class WuzzufJobItem(scrapy.Item):
+    search_keyword = scrapy.Field()
+    page_number = scrapy.Field()
+    job_title = scrapy.Field()
+    company_name = scrapy.Field()
+    location = scrapy.Field()
+    posted_time = scrapy.Field()
+    years_of_experience = scrapy.Field()
+    technologies = scrapy.Field()
