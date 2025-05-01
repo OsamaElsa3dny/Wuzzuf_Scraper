@@ -6,7 +6,7 @@ from wuzzufscraper.items import WuzzufJobItem
 class WuzzufJobsSpider(scrapy.Spider):
     name = 'wuzzuf_jobs'
     allowed_domains = ['wuzzuf.net']
-    keywords = ['software', 'python', 'backend', 'frontend','Data scientist','Data engineer','Machine learning','Ai','Cloud','Devops','full stack','Data Analyst','Web Application Developer','Mobile Application Developer']
+    keywords = ['software', 'python', 'backend', 'frontend', 'Data scientist', 'Data engineer', 'Machine learning','Ai', 'Cloud', 'Devops', 'full stack', 'Data Analyst', 'Web Application Developer','Mobile Application Developer']
     custom_settings = {
         'DOWNLOAD_DELAY': 5,
         'CONCURRENT_REQUESTS': 5,
@@ -20,7 +20,7 @@ class WuzzufJobsSpider(scrapy.Spider):
             yield scrapy.Request(url=url, callback=self.parse, meta={'keyword': keyword, 'page': 0})
     def parse(self, response):
         keyword = response.meta['keyword']
-        page_number = response.meta['page']+1
+        page_number = response.meta['page'] + 1
         job_listings = response.css('div.css-1gatmva')
         self.logger.info(f"Scraping '{keyword}' - Page {page_number} - {response.url}")
         self.logger.info(f"Found {len(job_listings)} job listings.")
@@ -40,21 +40,45 @@ class WuzzufJobsSpider(scrapy.Spider):
             posted_time = job.css('div.css-do6t5g::text').get()
             if posted_time:
                 posted_time = posted_time.strip()
-            experience_text = job.css('div.css-y4udm8::text').getall()
-            experience_text = ' '.join([text.strip() for text in experience_text if text.strip()])
             years_of_exp = None
-            exp_pattern = r'(\d+)\s*-\s*(\d+)\s*[Yy]rs'
-            exp_match = re.search(exp_pattern, experience_text)
-            if exp_match:
-                min_exp = exp_match.group(1)
-                max_exp = exp_match.group(2)
+            # First get the experience level (Entry Level, Experienced, etc.)
+            exp_level = job.css('div.css-y4udm8 a::text').get()
+            if exp_level:
+                exp_level = exp_level.strip()
+                self.logger.debug(f"Experience level: {exp_level}")
+            all_text = ' '.join(job.css('*::text').getall())
+            yrs_pattern = re.search(r'(\d+)\s*-\s*(\d+)\s*Yrs\s*of\s*Exp', all_text, re.IGNORECASE)
+            if yrs_pattern:
+                min_exp = yrs_pattern.group(1)
+                max_exp = yrs_pattern.group(2)
                 years_of_exp = f"{min_exp}-{max_exp} years"
+            else:
+                yrs_pattern = re.search(r'(\d+)\s*-\s*(\d+)\s*[Yy](?:ea)?rs?', all_text)
+                if yrs_pattern:
+                    min_exp = yrs_pattern.group(1)
+                    max_exp = yrs_pattern.group(2)
+                    years_of_exp = f"{min_exp}-{max_exp} years"
+                else:
+                    yrs_pattern = re.search(r'(\d+)\+?\s*[Yy](?:ea)?rs?', all_text)
+                    if yrs_pattern:
+                        min_exp = yrs_pattern.group(1)
+                        years_of_exp = f"{min_exp}+ years"
+            if not years_of_exp and exp_level:
+                if exp_level.lower() == 'entry level':
+                    years_of_exp = "0-2 years"
+                elif exp_level.lower() == 'experienced':
+                    years_of_exp = "3+ years"
+                elif exp_level.lower() == 'manager':
+                    years_of_exp = "5+ years"
+                elif exp_level.lower() == 'senior':
+                    years_of_exp = "7+ years"
             technologies = []
             tech_elements = job.css('a.css-5x9pm1::text').getall()
             for tech in tech_elements:
                 tech = tech.strip()
                 if tech and tech not in ['.', '...', ',', '-']:
                     technologies.append(tech)
+
             job_item = WuzzufJobItem(
                 search_keyword=keyword,
                 page_number=page_number,
