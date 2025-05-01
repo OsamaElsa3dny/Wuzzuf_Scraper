@@ -12,6 +12,9 @@ BOT_NAME = "wuzzufscraper"
 SPIDER_MODULES = ["wuzzufscraper.spiders"]
 NEWSPIDER_MODULE = "wuzzufscraper.spiders"
 
+ITEM_PIPELINES = {
+    'wuzzufscraper.pipelines.CleanData': 100,  # Runs first
+}
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "wuzzufscraper (+http://www.yourdomain.com)"
