@@ -1,10 +1,4 @@
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-
-# useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem
 import regex as re
@@ -53,8 +47,6 @@ class MSSQL:
         self.db_settings=db_settings
 
     def from_crawler(cls, crawler):
-        # Before running make sure to change this into your own server and database credentials , or don't use this class
-        # if you don't want to save the data into your own database server (recommended) as it has no use anymore.
         return cls(db_settings={
             "server": crawler.settings.get('DESKTOP-B8DNKVM\SQLEXPRESS'),
             "database": crawler.settings.get('ScrappedJob'),

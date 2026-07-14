@@ -41,7 +41,6 @@ class WuzzufJobsSpider(scrapy.Spider):
             if posted_time:
                 posted_time = posted_time.strip()
             years_of_exp = None
-            # First get the experience level (Entry Level, Experienced, etc.)
             exp_level = job.css('div.css-y4udm8 a::text').get()
             if exp_level:
                 exp_level = exp_level.strip()
